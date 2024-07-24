@@ -1,7 +1,7 @@
 // lib/pages/register_page.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:kader_nu/providers/auth_provider.dart';
+import '../providers/auth_provider.dart';
 import 'login_page.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -10,231 +10,150 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
-  final TextEditingController namaController = TextEditingController();
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController = TextEditingController();
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  String? _selectedRole;
+  final _formKey = GlobalKey<FormState>();
+  String _nama = '';
+  String _email = '';
+  String _password = '';
+  String _confirmPassword = '';
+  String _role = 'prnu';
+  bool _isLoading = false;
+  String? _errorMessage;
 
- bool _obscurePassword = true;
+  void _submit() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+      });
+
+      try {
+        await Provider.of<AuthProvider>(context, listen: false)
+            .register(_nama, _email, _password, _role);
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => LoginPage(),
+          ),
+        );
+      } catch (error) {
+        setState(() {
+          _errorMessage = error.toString();
+        });
+      }
+
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
-
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-      body: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 30.0),
+      appBar: AppBar(title: Text('Register')),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
           child: Column(
-            children: [
-              const SizedBox(height: 100),
-              Text(
-                "Register",
-                style: Theme.of(context).textTheme.headlineLarge,
-              ),
-              const SizedBox(height: 10),
-              Text(
-                "Create your account",
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              const SizedBox(height: 35),
+            children: <Widget>[
               TextFormField(
-                controller: namaController,
-                keyboardType: TextInputType.name,
-                decoration: InputDecoration(
-                  labelText: "Nama",
-                  prefixIcon: const Icon(Icons.person_outline),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
+                decoration: InputDecoration(labelText: 'Nama'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter your name';
+                    return 'Please enter your nama';
                   }
                   return null;
                 },
+                onChanged: (value) {
+                  setState(() {
+                    _nama = value;
+                  });
+                },
               ),
-              const SizedBox(height: 10),
               TextFormField(
-                controller: emailController,
-                keyboardType: TextInputType.emailAddress,
-                decoration: InputDecoration(
-                  labelText: "Email",
-                  prefixIcon: const Icon(Icons.email_outlined),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
+                decoration: InputDecoration(labelText: 'Email'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter your email';
                   }
                   return null;
                 },
+                onChanged: (value) {
+                  setState(() {
+                    _email = value;
+                  });
+                },
               ),
-              const SizedBox(height: 10),
               TextFormField(
-                controller: passwordController,
-                obscureText: _obscurePassword,
-                keyboardType: TextInputType.visiblePassword,
-                decoration: InputDecoration(
-                  labelText: "Password",
-                  prefixIcon: const Icon(Icons.password_outlined),
-                  suffixIcon: IconButton(
-                      onPressed: () {
-                        setState(() {
-                          _obscurePassword = !_obscurePassword;
-                        });
-                      },
-                      icon: _obscurePassword
-                          ? const Icon(Icons.visibility_outlined)
-                          : const Icon(Icons.visibility_off_outlined)),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
+                decoration: InputDecoration(labelText: 'Password'),
+                obscureText: true,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter your password';
                   }
                   return null;
                 },
+                onChanged: (value) {
+                  setState(() {
+                    _password = value;
+                  });
+                },
               ),
-              const SizedBox(height: 10),
               TextFormField(
-                controller: confirmPasswordController,
-                obscureText: _obscurePassword,
-                keyboardType: TextInputType.visiblePassword,
-                decoration: InputDecoration(
-                  labelText: "Confirm Password",
-                  prefixIcon: const Icon(Icons.password_outlined),
-                  suffixIcon: IconButton(
-                      onPressed: () {
-                        setState(() {
-                          _obscurePassword = !_obscurePassword;
-                        });
-                      },
-                      icon: _obscurePassword
-                          ? const Icon(Icons.visibility_outlined)
-                          : const Icon(Icons.visibility_off_outlined)),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
+                decoration: InputDecoration(labelText: 'Confirm Password'),
+                obscureText: true,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please confirm your password';
                   }
-                  if (value != passwordController.text) {
+                  if (value != _password) {
                     return 'Passwords do not match';
                   }
                   return null;
                 },
-              ),
-              const SizedBox (height: 10),
-              DropdownButtonFormField<String>(
-                value: _selectedRole,
-                hint: Text('Select Role'),
-                decoration: InputDecoration(
-                  labelText: "Jabatan",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                items: <String>['prnu', 'mwcnu', 'pcnu']
-                    .map((role) => DropdownMenuItem(
-                          value: role,
-                          child: Text(role.toUpperCase()),
-                        ))
-                    .toList(),
                 onChanged: (value) {
                   setState(() {
-                    _selectedRole = value;
+                    _confirmPassword = value;
                   });
                 },
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please select a role';
-                  }
-                  return null;
+              ),
+              DropdownButtonFormField<String>(
+                value: _role,
+                decoration: InputDecoration(labelText: 'Role'),
+                items: [
+                  DropdownMenuItem(child: Text('PRNU'), value: 'prnu'),
+                  DropdownMenuItem(child: Text('MWCNU'), value: 'mwcnu'),
+                  DropdownMenuItem(child: Text('PCNU'), value: 'pcnu'),
+                ],
+                onChanged: (value) {
+                  setState(() {
+                    _role = value!;
+                  });
                 },
               ),
-              const SizedBox(height: 50),
-              Column(
-                children: [
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
-                      minimumSize: const Size.fromHeight(50),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
+              SizedBox(height: 20),
+              _isLoading
+                  ? CircularProgressIndicator()
+                  : ElevatedButton(
+                      onPressed: _submit,
+                      child: Text('Register'),
                     ),
-                    onPressed: () async {
-                       if (_formKey.currentState?.validate() ?? false) {
-                        String nama = namaController.text;
-                        String email = emailController.text;
-                        String password = passwordController.text;
-                        String role = _selectedRole!;
-
-                        try {
-                        await authProvider.register(nama, email, password, role);
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (context) => LoginPage()),
-                        );
-                      } catch (e) {
-                        ScaffoldMessenger.of(context)
-                            .showSnackBar(SnackBar(content: Text('Failed to register: $e')));
-                      }
-
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            width: 200,
-                            backgroundColor:
-                                Theme.of(context).colorScheme.secondary,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            behavior: SnackBarBehavior.floating,
-                            content: const Text("Registered Successfully"),
-                          ),
-                        );
-
-                        Navigator.pop(context);
-                      }
-                    },
-                    child: const Text("Register"),
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text("Already have an account?"),
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text("Login"),
-                      ),
-                    ],
-                  ),
-                ],
+              if (_errorMessage != null) ...[
+                SizedBox(height: 20),
+                Text(
+                  _errorMessage!,
+                  style: TextStyle(color: Colors.red),
+                ),
+              ],
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => LoginPage(),
+                    ),
+                  );
+                },
+                child: Text('Already have an account? Login'),
               ),
             ],
           ),

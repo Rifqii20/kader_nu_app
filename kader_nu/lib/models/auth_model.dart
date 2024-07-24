@@ -1,14 +1,16 @@
-// lib/models/auth_model.dart
-class AuthResponse {
-  final String token;
-  final String role;
+// lib/models/register_request.dart
+class RegisterRequest {
+  final String nama;
+  final String email;
+  final String password;
 
-  AuthResponse({required this.token, required this.role});
+  RegisterRequest({required this.nama, required this.email, required this.password});
 
-  factory AuthResponse.fromJson(Map<String, dynamic> json) {
-    return AuthResponse(
-      token: json['token'],
-      role: json['role'],
-    );
+  Map<String, dynamic> toJson() {
+    return {
+      'nama': nama,
+      'email': email,
+      'password': password,
+    };
   }
 }
