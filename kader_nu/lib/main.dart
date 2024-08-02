@@ -24,9 +24,10 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (context) => KegiatanProvider()),
       ],
       child: MaterialApp(
-        title: 'Flutter Auth Demo',
+        debugShowCheckedModeBanner: false,
+        title: 'Kader NU',
         theme: ThemeData(
-          primarySwatch: Colors.blue,
+          primarySwatch: Colors.green,
         ),
         home: SplashScreen(),
       ),

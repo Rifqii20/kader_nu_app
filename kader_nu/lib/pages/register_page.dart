@@ -1,4 +1,3 @@
-// lib/pages/register_page.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
@@ -50,17 +49,42 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Register')),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
+              SizedBox(height: 20),
+              Text(
+                'Create Account',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(height: 20),
+              Text(
+                'Please fill in the details to create an account',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey[600],
+                ),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 40),
               TextFormField(
-                decoration: InputDecoration(labelText: 'Nama'),
+                decoration: InputDecoration(
+                  labelText: 'Nama',
+                  prefixIcon: Icon(Icons.person),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter your nama';
+                    return 'Please enter your name';
                   }
                   return null;
                 },
@@ -70,8 +94,15 @@ class _RegisterPageState extends State<RegisterPage> {
                   });
                 },
               ),
+              SizedBox(height: 20),
               TextFormField(
-                decoration: InputDecoration(labelText: 'Email'),
+                decoration: InputDecoration(
+                  labelText: 'Email',
+                  prefixIcon: Icon(Icons.email),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter your email';
@@ -84,8 +115,15 @@ class _RegisterPageState extends State<RegisterPage> {
                   });
                 },
               ),
+              SizedBox(height: 20),
               TextFormField(
-                decoration: InputDecoration(labelText: 'Password'),
+                decoration: InputDecoration(
+                  labelText: 'Password',
+                  prefixIcon: Icon(Icons.lock),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
                 obscureText: true,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -99,8 +137,15 @@ class _RegisterPageState extends State<RegisterPage> {
                   });
                 },
               ),
+              SizedBox(height: 20),
               TextFormField(
-                decoration: InputDecoration(labelText: 'Confirm Password'),
+                decoration: InputDecoration(
+                  labelText: 'Confirm Password',
+                  prefixIcon: Icon(Icons.lock),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
                 obscureText: true,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -117,9 +162,16 @@ class _RegisterPageState extends State<RegisterPage> {
                   });
                 },
               ),
+              SizedBox(height: 20),
               DropdownButtonFormField<String>(
                 value: _role,
-                decoration: InputDecoration(labelText: 'Role'),
+                decoration: InputDecoration(
+                  labelText: 'Role',
+                  prefixIcon: Icon(Icons.person_outline),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
                 items: [
                   DropdownMenuItem(child: Text('PRNU'), value: 'prnu'),
                   DropdownMenuItem(child: Text('MWCNU'), value: 'mwcnu'),
@@ -131,12 +183,22 @@ class _RegisterPageState extends State<RegisterPage> {
                   });
                 },
               ),
-              SizedBox(height: 20),
+              SizedBox(height: 30),
               _isLoading
                   ? CircularProgressIndicator()
                   : ElevatedButton(
                       onPressed: _submit,
-                      child: Text('Register'),
+                      style: ElevatedButton.styleFrom(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 100, vertical: 15),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: Text(
+                        'Register',
+                        style: TextStyle(fontSize: 16),
+                      ),
                     ),
               if (_errorMessage != null) ...[
                 SizedBox(height: 20),
@@ -145,6 +207,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   style: TextStyle(color: Colors.red),
                 ),
               ],
+              SizedBox(height: 20),
               TextButton(
                 onPressed: () {
                   Navigator.of(context).push(
@@ -153,7 +216,10 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                   );
                 },
-                child: Text('Already have an account? Login'),
+                child: Text(
+                  'Already have an account? Login',
+                  style: TextStyle(color: Theme.of(context).primaryColor),
+                ),
               ),
             ],
           ),

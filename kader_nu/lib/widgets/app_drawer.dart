@@ -1,4 +1,3 @@
-// lib/widgets/app_drawer.dart
 import 'package:flutter/material.dart';
 import 'package:kader_nu/pages/aset/aset_page.dart';
 import 'package:kader_nu/pages/jamaah/jamaah_page.dart';
@@ -17,34 +16,42 @@ class AppDrawer extends StatelessWidget {
       child: ListView(
         padding: EdgeInsets.zero,
         children: <Widget>[
-          DrawerHeader(
+          UserAccountsDrawerHeader(
             decoration: BoxDecoration(
-              color: Colors.blue,
-            ),
-            child: Text(
-              'Menu',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 24,
+              gradient: LinearGradient(
+                colors: [Colors.blue, Colors.blueAccent],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
+            ),
+            accountName: Text(
+              'User Name',
+              style: TextStyle(fontSize: 18),
+            ),
+            accountEmail: Text(
+              authProvider.token != null ? 'Logged in' : 'Not logged in',
+              style: TextStyle(fontSize: 14),
+            ),
+            currentAccountPicture: CircleAvatar(
+              backgroundImage: NetworkImage('https://via.placeholder.com/150'),
             ),
           ),
           if (role == 'pcnu' || role == 'mwcnu')
-          ListTile(
-            leading: Icon(Icons.group),
-            title: Text('Jamaah'),
-            onTap: () {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(
-                  builder: (context) => JamaahPage(),
-                ),
-              );
-            },
-          ),
+            _createDrawerItem(
+              icon: Icons.group,
+              text: 'Jamaah',
+              onTap: () {
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(
+                    builder: (context) => JamaahPage(),
+                  ),
+                );
+              },
+            ),
           if (role == 'pcnu' || role == 'mwcnu' || role == 'prnu')
-            ListTile(
-              leading: Icon(Icons.event),
-              title: Text('Kegiatan'),
+            _createDrawerItem(
+              icon: Icons.event,
+              text: 'Kegiatan',
               onTap: () {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(
@@ -54,9 +61,9 @@ class AppDrawer extends StatelessWidget {
               },
             ),
           if (role == 'pcnu' || role == 'mwcnu')
-            ListTile(
-              leading: Icon(Icons.school),
-              title: Text('Aset'),
+            _createDrawerItem(
+              icon: Icons.business,
+              text: 'Aset',
               onTap: () {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(
@@ -65,9 +72,9 @@ class AppDrawer extends StatelessWidget {
                 );
               },
             ),
-            ListTile(
-            leading: Icon(Icons.logout),
-            title: Text('Logout'),
+          _createDrawerItem(
+            icon: Icons.logout,
+            text: 'Logout',
             onTap: () {
               authProvider.logout();
               Navigator.of(context).pushReplacement(
@@ -77,6 +84,25 @@ class AppDrawer extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _createDrawerItem({
+    required IconData icon,
+    required String text,
+    required GestureTapCallback onTap,
+  }) {
+    return ListTile(
+      title: Row(
+        children: <Widget>[
+          Icon(icon, color: Colors.blueAccent),
+          Padding(
+            padding: EdgeInsets.only(left: 8.0),
+            child: Text(text),
+          ),
+        ],
+      ),
+      onTap: onTap,
     );
   }
 }

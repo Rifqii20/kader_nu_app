@@ -1,12 +1,13 @@
-// lib/models/kegiatan.dart
+import 'package:flutter/material.dart';
+
 class Kegiatan {
-  final int id;
-  final String nama;
-  final String deskripsi;
-  final DateTime tanggal;
+  int? id;
+  String nama;
+  String deskripsi;
+  DateTime tanggal;
 
   Kegiatan({
-    required this.id,
+    this.id,
     required this.nama,
     required this.deskripsi,
     required this.tanggal,
@@ -24,6 +25,7 @@ class Kegiatan {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'nama': nama,
       'deskripsi': deskripsi,
       'tanggal': tanggal.toIso8601String(),
     };

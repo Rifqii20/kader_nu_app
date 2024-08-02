@@ -1,12 +1,10 @@
-// lib/pages/kegiatan_page.dart
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:kader_nu/models/kegiatan_model.dart';
 import 'package:kader_nu/providers/kegiatan_provider.dart';
 import 'package:kader_nu/widgets/app_drawer.dart';
-import 'package:provider/provider.dart';
-import 'kegiatan_detail_page.dart';
 import 'kegiatan_form_page.dart';
-import 'package:intl/intl.dart'; // Untuk format tanggal
+import 'kegiatan_detail_page.dart';
 
 class KegiatanPage extends StatefulWidget {
   @override
@@ -14,96 +12,109 @@ class KegiatanPage extends StatefulWidget {
 }
 
 class _KegiatanPageState extends State<KegiatanPage> {
-  late List<Kegiatan> _kegiatanList;
-  List<Kegiatan> _filteredKegiatanList = [];
+  TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
-    _fetchKegiatan();
-  }
-
-  Future<void> _fetchKegiatan() async {
-    try {
-      final kegiatanProvider = Provider.of<KegiatanProvider>(context, listen: false);
-      await kegiatanProvider.fetchKegiatan();
+    _searchController.addListener(() {
       setState(() {
-        _kegiatanList = kegiatanProvider.kegiatan;
-        _filteredKegiatanList = _kegiatanList;
+        _searchQuery = _searchController.text;
       });
-    } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to load kegiatan')));
-    }
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<KegiatanProvider>(context, listen: false).fetchKegiatan(context);
+    });
   }
 
-  void _searchKegiatan(String query) {
-    final filteredList = _kegiatanList.where((kegiatan) {
-      final nameLower = kegiatan.nama.toLowerCase();
-      final queryLower = query.toLowerCase();
-      return nameLower.contains(queryLower);
-    }).toList();
-    setState(() {
-      _filteredKegiatanList = filteredList;
-    });
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Kegiatan'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.add),
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => KegiatanFormPage(),
-                ),
-              ).then((_) => _fetchKegiatan());
-            },
-          ),
-        ],
-      ),
-      drawer: AppDrawer(),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
+        title: Text(
+          'Kegiatan List',
+          style: TextStyle(color: Colors.white, fontSize: 24),
+        ),
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(60.0),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
             child: TextField(
+              controller: _searchController,
               decoration: InputDecoration(
-                labelText: 'Search',
+                hintText: 'Search...',
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30.0),
+                  borderSide: BorderSide.none,
+                ),
                 prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(),
               ),
-              onChanged: _searchKegiatan,
             ),
           ),
-          Expanded(
-            child: ListView.builder(
-              itemCount: _filteredKegiatanList.length,
+        ),
+        backgroundColor: Colors.green,
+      ),
+      drawer: AppDrawer(),
+      body: Consumer<KegiatanProvider>(
+        builder: (context, kegiatanProvider, child) {
+          if (kegiatanProvider.isLoading) {
+            return Center(child: CircularProgressIndicator());
+          } else if (kegiatanProvider.errorMessage != null) {
+            return Center(child: Text('Error: ${kegiatanProvider.errorMessage}'));
+          } else {
+            List<Kegiatan> filteredKegiatan = kegiatanProvider.kegiatan.where((kegiatan) {
+              return kegiatan.nama.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+                     kegiatan.deskripsi.toLowerCase().contains(_searchQuery.toLowerCase());
+            }).toList();
+
+            return ListView.builder(
+              padding: const EdgeInsets.all(8.0),
+              itemCount: filteredKegiatan.length,
               itemBuilder: (context, index) {
-                final kegiatan = _filteredKegiatanList[index];
+                final kegiatan = filteredKegiatan[index];
                 return Card(
-                  margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                  margin: const EdgeInsets.symmetric(vertical: 8.0),
+                  elevation: 3,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                   child: ListTile(
-                    title: Text(kegiatan.nama),
-                    subtitle: Text(
-                      '${kegiatan.deskripsi}\n${DateFormat('yyyy-MM-dd').format(DateTime.parse(kegiatan.tanggal as String))}',
+                    contentPadding: const EdgeInsets.all(16.0),
+                    title: Text(
+                      kegiatan.nama,
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => KegiatanDetailPage(kegiatan: kegiatan),
-                        ),
-                      );
-                    },
+                    subtitle: Text(kegiatan.deskripsi),
+                    trailing: Icon(Icons.arrow_forward_ios, color: Colors.green),
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => KegiatanDetailPage(kegiatan: kegiatan),
+                      ),
+                    ),
                   ),
                 );
               },
-            ),
+            );
+          }
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => KegiatanFormPage(),
           ),
-        ],
+        ),
+        child: Icon(Icons.add, color: Colors.white),
+        backgroundColor: Colors.green,
       ),
     );
   }

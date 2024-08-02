@@ -1,9 +1,9 @@
-// lib/pages/kegiatan_detail_page.dart
 import 'package:flutter/material.dart';
 import 'package:kader_nu/models/kegiatan_model.dart';
+import 'package:kader_nu/providers/auth_provider.dart';
 import 'package:kader_nu/providers/kegiatan_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart'; // Untuk format tanggal
+import 'package:intl/intl.dart';
 import 'kegiatan_form_page.dart';
 
 class KegiatanDetailPage extends StatelessWidget {
@@ -13,9 +13,11 @@ class KegiatanDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
     return Scaffold(
       appBar: AppBar(
-        title: Text('Detail Kegiatan'),
+        title: Text(kegiatan.nama),
         actions: [
           IconButton(
             icon: Icon(Icons.edit),
@@ -50,10 +52,13 @@ class KegiatanDetailPage extends StatelessWidget {
 
               if (confirmDelete == true) {
                 try {
-                  await Provider.of<KegiatanProvider>(context, listen: false).deleteKegiatan(kegiatan.id);
+                  await Provider.of<KegiatanProvider>(context, listen: false)
+                      .deleteKegiatan(authProvider.token!, kegiatan.id!);
                   Navigator.of(context).pop();
                 } catch (error) {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to delete kegiatan')));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Failed to delete jamaah')),
+                  );
                 }
               }
             },
@@ -77,7 +82,7 @@ class KegiatanDetailPage extends StatelessWidget {
             ),
             SizedBox(height: 8),
             Text(
-              'Tanggal: ${DateFormat('yyyy-MM-dd').format(DateTime.parse(kegiatan.tanggal as String))}',
+              'Tanggal: ${DateFormat('yyyy-MM-dd').format(kegiatan.tanggal)}',
               style: Theme.of(context).textTheme.bodyMedium,
             ),
           ],

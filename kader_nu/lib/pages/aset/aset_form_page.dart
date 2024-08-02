@@ -1,8 +1,8 @@
-// lib/pages/aset_form_page.dart
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:kader_nu/models/aset_model.dart';
 import 'package:kader_nu/providers/aset_provider.dart';
-import 'package:provider/provider.dart';
+import 'package:kader_nu/providers/auth_provider.dart';
 
 class AsetFormPage extends StatefulWidget {
   final Aset? aset;
@@ -15,6 +15,7 @@ class AsetFormPage extends StatefulWidget {
 
 class _AsetFormPageState extends State<AsetFormPage> {
   final _formKey = GlobalKey<FormState>();
+  late String _kodeAset;
   late String _nama;
   late String _deskripsi;
   late String _lokasi;
@@ -23,13 +24,44 @@ class _AsetFormPageState extends State<AsetFormPage> {
   void initState() {
     super.initState();
     if (widget.aset != null) {
+      _kodeAset = widget.aset!.kodeAset;
       _nama = widget.aset!.nama;
       _deskripsi = widget.aset!.deskripsi;
       _lokasi = widget.aset!.lokasi;
     } else {
+      _kodeAset = '';
       _nama = '';
       _deskripsi = '';
       _lokasi = '';
+    }
+  }
+
+  Future<void> _submitForm() async {
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
+      final asetProvider = Provider.of<AsetProvider>(context, listen: false);
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+      Aset aset = Aset(
+        id: widget.aset?.id,
+        kodeAset: widget.aset?.kodeAset ?? asetProvider.generateKodeAset(asetProvider.aset),
+        nama: _nama,
+        deskripsi: _deskripsi,
+        lokasi: _lokasi,
+      );
+
+      try {
+        if (widget.aset == null) {
+          await asetProvider.addAset(context, aset);
+        } else {
+          await asetProvider.updateAset(context, aset);
+        }
+        Navigator.of(context).pop();
+      } catch (error) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.toString())),
+        );
+      }
     }
   }
 
@@ -38,73 +70,103 @@ class _AsetFormPageState extends State<AsetFormPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.aset == null ? 'Add Aset' : 'Edit Aset'),
+        backgroundColor: Colors.green,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
-          child: Column(
+          child: ListView(
             children: [
-              TextFormField(
+              if (widget.aset == null) 
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Text(
+                    'Kode Aset: ${Provider.of<AsetProvider>(context).generateKodeAset(Provider.of<AsetProvider>(context).aset)}',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              _buildTextField(
+                label: 'Nama',
                 initialValue: _nama,
-                decoration: InputDecoration(labelText: 'Nama'),
-                onChanged: (value) => _nama = value,
                 validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Nama is required';
+                  if (value!.isEmpty) {
+                    return 'Please enter nama';
                   }
                   return null;
                 },
+                onSaved: (value) {
+                  _nama = value!;
+                },
               ),
-              TextFormField(
+              _buildTextField(
+                label: 'Deskripsi',
                 initialValue: _deskripsi,
-                decoration: InputDecoration(labelText: 'Deskripsi'),
-                onChanged: (value) => _deskripsi = value,
                 validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Deskripsi is required';
+                  if (value!.isEmpty) {
+                    return 'Please enter deskripsi';
                   }
                   return null;
                 },
+                onSaved: (value) {
+                  _deskripsi = value!;
+                },
               ),
-              TextFormField(
+              _buildTextField(
+                label: 'Lokasi',
                 initialValue: _lokasi,
-                decoration: InputDecoration(labelText: 'Lokasi'),
-                onChanged: (value) => _lokasi = value,
                 validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Lokasi is required';
+                  if (value!.isEmpty) {
+                    return 'Please enter lokasi';
                   }
                   return null;
+                },
+                onSaved: (value) {
+                  _lokasi = value!;
                 },
               ),
               SizedBox(height: 20),
               ElevatedButton(
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    final aset = Aset(
-                      id: widget.aset?.id ?? 0,
-                      nama: _nama,
-                      deskripsi: _deskripsi,
-                      lokasi: _lokasi,
-                    );
-
-                    if (widget.aset == null) {
-                      Provider.of<AsetProvider>(context, listen: false)
-                          .addAset(aset)
-                          .then((_) => Navigator.of(context).pop());
-                    } else {
-                      Provider.of<AsetProvider>(context, listen: false)
-                          .updateAset(aset)
-                          .then((_) => Navigator.of(context).pop());
-                    }
-                  }
-                },
-                child: Text(widget.aset == null ? 'Add Aset' : 'Update Aset'),
+                onPressed: _submitForm,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  padding: EdgeInsets.symmetric(vertical: 16.0),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                ),
+                child: Text(
+                  widget.aset == null ? 'Add Aset' : 'Update Aset',
+                  style: TextStyle(fontSize: 18),
+                ),
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required String label,
+    required String initialValue,
+    required FormFieldValidator<String> validator,
+    required FormFieldSetter<String> onSaved,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: TextFormField(
+        initialValue: initialValue,
+        decoration: InputDecoration(
+          labelText: label,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          filled: true,
+          fillColor: Colors.grey[200],
+        ),
+        validator: validator,
+        onSaved: onSaved,
       ),
     );
   }
